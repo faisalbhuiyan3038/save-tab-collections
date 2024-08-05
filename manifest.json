@@ -1,0 +1,16 @@
+{
+    "manifest_version": 2,
+    "name": "Link Collection Manager",
+    "version": "1.0",
+    "description": "Manage and access your link collections.",
+    "browser_action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "48": "icons/icon-48.png"
+        }
+    },
+    "permissions": [
+        "storage",
+        "tabs"
+    ]
+}

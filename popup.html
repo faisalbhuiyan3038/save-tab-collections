@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Link Collection Manager</h1>
+    <button id="createCollection">Create Link Collection</button>
+    <div id="collections"></div>
+
+    <!-- Modal for creating a new collection -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Create a new link collection</h2>
+        <input type="text" id="collectionName" placeholder="Collection Name" />
+        <textarea
+          id="collectionLinks"
+          placeholder="Paste links here, one per line"
+        ></textarea>
+        <button id="saveCollection">Save</button>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
