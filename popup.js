@@ -1,12 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
-  const createCollectionButton = document.getElementById("createCollection");
+  const createCollectionIcon = document.getElementById("createCollection");
   const modal = document.getElementById("modal");
   const closeModal = document.querySelector(".close");
   const saveCollectionButton = document.getElementById("saveCollection");
   const collectionsDiv = document.getElementById("collections");
 
   // Show modal
-  createCollectionButton.addEventListener("click", () => {
+  createCollectionIcon.addEventListener("click", () => {
     modal.style.display = "block";
   });
 
