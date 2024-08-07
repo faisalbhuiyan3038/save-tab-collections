@@ -18,20 +18,27 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.3/dist/minty/bootstrap.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <div class="container">
       <div class="row mb-3">
-        <div class="col-10">
+        <div class="col-10 animate__animated animate__zoomInLeft">
           <h2>Tab Collections</h2>
         </div>
-        <div id="createCollection" class="col-2 text-end">
+        <div
+          id="createCollection"
+          class="col-2 text-end animate__animated animate__tada animate__infinite"
+        >
           <i class="fas fa-folder-plus"></i>
         </div>
       </div>
-      <div class="row">
-        <div class="col-6 mb-3">
+      <div id="collections" class="row">
+        <!-- <div class="col-6 mb-3">
           <button type="button" class="btn btn-secondary">
             Tab Collection 1
           </button>
@@ -50,7 +57,7 @@
           <button type="button" class="btn btn-secondary">
             Tab Collection 4
           </button>
-        </div>
+        </div> -->
       </div>
     </div>
 

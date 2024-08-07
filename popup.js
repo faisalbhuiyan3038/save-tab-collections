@@ -49,8 +49,12 @@ document.addEventListener("DOMContentLoaded", function () {
       const collections = result.collections;
       collections.forEach((collection, index) => {
         const collectionDiv = document.createElement("div");
-        collectionDiv.className = "collection";
-        collectionDiv.innerHTML = `<strong>${collection.name}</strong>`;
+        collectionDiv.className = "col-6 mb-3";
+        const collectionButton = document.createElement("button");
+        collectionButton.type = "button";
+        collectionButton.className = "btn btn-secondary";
+        collectionButton.innerHTML = `<strong>${collection.name}</strong>`;
+        collectionDiv.appendChild(collectionButton);
         collectionDiv.addEventListener("click", () => {
           displayLinks(collection);
         });
@@ -62,6 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Display links
   function displayLinks(collection) {
     collectionsDiv.innerHTML = `<h2>${collection.name}</h2>`;
+    collectionsDiv.className += "animate__animated animate__zoomInLeft";
     collection.links.forEach((link) => {
       const linkElement = document.createElement("a");
       linkElement.href = link;
