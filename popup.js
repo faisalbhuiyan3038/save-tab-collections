@@ -49,10 +49,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const collections = result.collections;
       collections.forEach((collection, index) => {
         const collectionDiv = document.createElement("div");
-        collectionDiv.className = "col-6 mb-3";
+        collectionDiv.className =
+          "d-flex col-6 mb-3 justify-content-center col-Button";
         const collectionButton = document.createElement("button");
         collectionButton.type = "button";
-        collectionButton.className = "btn btn-secondary";
+        collectionButton.className = "btn btn-secondary col-12";
         collectionButton.innerHTML = `<strong>${collection.name}</strong>`;
         collectionDiv.appendChild(collectionButton);
         collectionDiv.addEventListener("click", () => {
@@ -65,21 +66,55 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Display links
   function displayLinks(collection) {
-    collectionsDiv.innerHTML = `<h2>${collection.name}</h2>`;
+    collectionsDiv.innerHTML = `<h3>${collection.name}</h3>`;
     collectionsDiv.className += "animate__animated animate__zoomInLeft";
+    const bulletElement = document.createElement("ul");
+    bulletElement.className = "list-group";
+    collectionsDiv.appendChild(bulletElement);
     collection.links.forEach((link) => {
-      const linkElement = document.createElement("a");
-      linkElement.href = link;
-      linkElement.textContent = link;
-      linkElement.target = "_blank";
-      collectionsDiv.appendChild(linkElement);
-      collectionsDiv.appendChild(document.createElement("br"));
+      const bullet = document.createElement("li");
+      bullet.className =
+        "list-group-item list-group-item-success d-flex justify-content-between align-items-center text-success-emphasis linkList mb-2";
+      bullet.href = link;
+      bullet.textContent = link;
+      bullet.target = "_blank";
+
+      bulletElement.appendChild(bullet);
     });
 
+    const buttonsDiv = document.createElement("div");
+
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.className = "btn btn-danger";
+    removeButton.textContent = "Delete";
+    removeButton.addEventListener("click", () => {
+      removeCollection(collection.name);
+    });
+    buttonsDiv.appendChild(removeButton);
+
+    buttonsDiv.className = "d-flex justify-content-between";
     const backButton = document.createElement("button");
+    backButton.type = "button";
+    backButton.className = "btn btn-info";
     backButton.textContent = "Back";
     backButton.addEventListener("click", displayCollections);
-    collectionsDiv.appendChild(backButton);
+    buttonsDiv.appendChild(backButton);
+
+    collectionsDiv.appendChild(buttonsDiv);
+  }
+
+  function removeCollection(collectionName) {
+    browser.storage.local.get({ collections: [] }, function (result) {
+      const collections = result.collections;
+      const index = collections.findIndex(
+        (collection) => collection.name === collectionName
+      );
+      collections.splice(index, 1);
+      browser.storage.local.set({ collections }, function () {
+        displayCollections();
+      });
+    });
   }
 
   // Initial display
