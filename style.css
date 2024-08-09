@@ -17,7 +17,7 @@ body {
     width: 100%;
     max-width: 280px;
     height: 362px; /* Ensures a minimum height */
-    padding: 20px;
+    padding-top: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
     box-sizing: border-box;
@@ -28,7 +28,7 @@ body {
     .container {
         width: 100%;
         max-width: none;
-        padding: 15px;
+        padding-top: 15px;
         min-height:auto; /* Remove fixed height for better adaptation */
         height:100%; /* Allow height to adjust based on content */
     }

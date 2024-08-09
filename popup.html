@@ -11,12 +11,22 @@
   <body>
     <div class="container">
       <div class="row mb-3">
-        <div class="col-10 animate__animated animate__lightSpeedInLeft">
-          <h2>Tab Collections</h2>
+        <div class="col-1">
+          <i
+            role="button"
+            data-bs-toggle="offcanvas"
+            href="#offcanvasSettings"
+            class="fas fa-bars"
+          ></i>
+        </div>
+        <div
+          class="col-9 text-center animate__animated animate__lightSpeedInLeft"
+        >
+          <h5>Tab Collections</h5>
         </div>
         <div
           id="createCollection"
-          class="col-2 text-end animate__animated animate__tada animate__infinite"
+          class="col-1 text-end animate__animated animate__tada animate__infinite"
         >
           <i class="fas fa-folder-plus"></i>
         </div>
@@ -71,6 +81,38 @@
         <button type="button" id="saveCollection" class="btn btn-success">
           Save
         </button>
+      </div>
+    </div>
+
+    <div
+      class="offcanvas offcanvas-start"
+      tabindex="-1"
+      id="offcanvasSettings"
+      aria-labelledby="offcanvasSettingsLabel"
+      bis_skin_checked="1"
+    >
+      <div class="offcanvas-header" bis_skin_checked="1">
+        <h5 class="offcanvas-title" id="offcanvasSettingsLabel">Settings</h5>
+        <button
+          type="button"
+          class="btn-close text-reset"
+          data-bs-dismiss="offcanvas"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="offcanvas-body" bis_skin_checked="1">
+        <h5 class="mb-2">Backup/Restore:</h5>
+        <div
+          class="card border-info mb-3"
+          style="max-width: 20rem"
+          bis_skin_checked="1"
+        >
+          <div class="card-header" bis_skin_checked="1">JSON</div>
+          <div class="card-body" bis_skin_checked="1">
+            <button type="button" class="btn btn-primary">Export</button>
+            <button type="button" class="btn btn-secondary">Import</button>
+          </div>
+        </div>
       </div>
     </div>
 
