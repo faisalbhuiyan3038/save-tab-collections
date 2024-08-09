@@ -74,11 +74,27 @@ document.addEventListener("DOMContentLoaded", function () {
     collection.links.forEach((link) => {
       const bullet = document.createElement("li");
       bullet.className =
-        "list-group-item list-group-item-success d-flex justify-content-between align-items-center text-success-emphasis linkList mb-2";
-      bullet.href = link;
-      bullet.textContent = link;
-      bullet.target = "_blank";
+        "list-group-item list-group-item-success d-flex justify-content-between align-items-center linkList mb-2";
 
+      const linkTag = document.createElement("a");
+      linkTag.className =
+        "link-underline link-underline-opacity-0 link-underline-opacity-75-hover text-success-emphasis";
+      linkTag.href = link;
+      linkTag.textContent = link;
+      linkTag.target = "_blank";
+
+      const isFirefoxAndroid = navigator.userAgent.includes("Android");
+      linkTag.addEventListener("click", (event) => {
+        event.preventDefault();
+        browser.tabs.create({
+          url: link,
+        });
+        if (isFirefoxAndroid) {
+          window.alert("Tab created!");
+        }
+      });
+
+      bullet.appendChild(linkTag);
       bulletElement.appendChild(bullet);
     });
 

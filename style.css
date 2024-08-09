@@ -24,12 +24,13 @@ body {
     overflow: auto; /* Allows scrolling if content overflows */
 }
 
-@media (max-width: 50px) {
+@media (max-width: 70px) {
     .container {
         width: 100%;
+        max-width: none;
         padding: 15px;
-        min-height: auto; /* Remove fixed height for better adaptation */
-        height: auto; /* Allow height to adjust based on content */
+        min-height:auto; /* Remove fixed height for better adaptation */
+        height:100%; /* Allow height to adjust based on content */
     }
 }
 
