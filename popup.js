@@ -4,6 +4,31 @@ document.addEventListener("DOMContentLoaded", function () {
   const closeModal = document.querySelector(".close");
   const saveCollectionButton = document.getElementById("saveCollection");
   const collectionsDiv = document.getElementById("collections");
+  const exportJSONButton = document.getElementById("exportJSON");
+  const importJSONButton = document.getElementById("importJSON");
+
+  exportJSONButton.addEventListener("click", () => {
+    browser.storage.local.get({ collections: [] }, function (result) {
+      const collections = result.collections;
+      exportCollections(collections);
+    });
+  });
+
+  importJSONButton.addEventListener("click", function () {
+    // Open import.html in a new tab
+    browser.tabs.create({ url: browser.runtime.getURL("import.html") });
+  });
+
+  function exportCollections(collections) {
+    const dataStr = JSON.stringify(collections, null, 2); // Convert collections array to JSON string
+    const blob = new Blob([dataStr], { type: "application/json" }); // Create a Blob from the JSON string
+    const url = URL.createObjectURL(blob); // Create a URL for the Blob
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "collections.json"; // Set the file name for the download
+    a.click(); // Trigger the download
+    URL.revokeObjectURL(url); // Clean up
+  }
 
   // Show modal
   createCollectionIcon.addEventListener("click", () => {
