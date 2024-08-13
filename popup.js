@@ -1,7 +1,9 @@
 document.addEventListener("DOMContentLoaded", function () {
   const createCollectionIcon = document.getElementById("createCollection");
   const modal = document.getElementById("modal");
+  const editModal = document.getElementById("editModal");
   const closeModal = document.querySelector(".close");
+  const closeEditModal = document.querySelector(".closeEdit");
   const saveCollectionButton = document.getElementById("saveCollection");
   const collectionsDiv = document.getElementById("collections");
   const exportJSONButton = document.getElementById("exportJSON");
@@ -38,6 +40,10 @@ document.addEventListener("DOMContentLoaded", function () {
   // Close modal
   closeModal.addEventListener("click", () => {
     modal.style.display = "none";
+  });
+
+  closeEditModal.addEventListener("click", () => {
+    editModal.style.display = "none";
   });
 
   // Save collection
@@ -91,6 +97,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Display links
   function displayLinks(collection) {
+    currentCollection = collection;
     collectionsDiv.innerHTML = `<h3>${collection.name}</h3>`;
     collectionsDiv.className += "animate__animated animate__zoomInLeft";
     const bulletElement = document.createElement("ul");
@@ -125,6 +132,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const buttonsDiv = document.createElement("div");
 
+    buttonsDiv.className = "d-flex justify-content-between";
+
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "btn btn-danger";
@@ -134,7 +143,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     buttonsDiv.appendChild(removeButton);
 
-    buttonsDiv.className = "d-flex justify-content-between";
+    const editButton = document.createElement("button");
+    editButton.type = "button";
+    editButton.className = "btn btn-warning";
+    editButton.textContent = "Edit";
+    editButton.addEventListener("click", () => {
+      editModal.style.display = "block";
+      editModalSave(collection);
+    });
+    buttonsDiv.appendChild(editButton);
+
     const backButton = document.createElement("button");
     backButton.type = "button";
     backButton.className = "btn btn-info";
@@ -143,6 +161,41 @@ document.addEventListener("DOMContentLoaded", function () {
     buttonsDiv.appendChild(backButton);
 
     collectionsDiv.appendChild(buttonsDiv);
+  }
+
+  function editModalSave(collection) {
+    console.log(collection);
+    const editLinksTextArea = document.getElementById("editLinks");
+    collection.links.forEach((link) => {
+      editLinksTextArea.value += `${link}\n\n`;
+    });
+
+    document
+      .getElementById("saveEditedCollection")
+      .addEventListener("click", () => {
+        console.log("clicked");
+        collection.links = document
+          .getElementById("editLinks")
+          .value.split("\n")
+          .map((link) => link.trim())
+          .filter((link) => link);
+
+        browser.storage.local.get({ collections: [] }, function (result) {
+          let retrievedCollections = result.collections || [];
+
+          retrievedCollections = retrievedCollections.map((item) => {
+            if (item.name === collection.name) {
+              return { ...item, links: collection.links }; // Modify the links as needed
+            }
+            return item;
+          });
+
+          // Save the updated collection back to storage
+          browser.storage.local.set({ collections: retrievedCollections });
+          editModal.style.display = "none";
+          displayLinks(collection);
+        });
+      });
   }
 
   function removeCollection(collectionName) {

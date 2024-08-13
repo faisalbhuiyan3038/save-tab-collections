@@ -75,11 +75,28 @@
             class="form-control"
             id="collectionLinks"
             placeholder="http://www.google.com/"
+            rows="2"
           ></textarea>
         </div>
 
         <button type="button" id="saveCollection" class="btn btn-success">
           Save
+        </button>
+      </div>
+    </div>
+
+    <!-- Modal for editing a collection -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="closeEdit" style="cursor: pointer">&times;</span>
+        <h5 class="modal-title">Edit Links</h5>
+        <div class="form-group mb-2">
+          <label for="editLinks">Edit links here, one per line</label>
+          <textarea class="form-control" id="editLinks" rows="7"></textarea>
+        </div>
+
+        <button type="button" id="saveEditedCollection" class="btn btn-success">
+          Save Changes
         </button>
       </div>
     </div>
