@@ -61,10 +61,13 @@ document.addEventListener("DOMContentLoaded", function () {
         links: collectionLinks,
       };
 
+
+
       // Save to storage
       browser.storage.local.get({ collections: [] }, function (result) {
-        const collections = result.collections;
+        let collections = result.collections;
         collections.push(collection);
+        collections = removeDuplicateLinks(collections, collectionName);
         browser.storage.local.set({ collections }, function () {
           modal.style.display = "none";
           displayCollections();
@@ -97,7 +100,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Display links
   function displayLinks(collection) {
-    currentCollection = collection;
+    // currentCollection = collection;
+    console.log(collection.links);
     collectionsDiv.innerHTML = `<h3>${collection.name}</h3>`;
     collectionsDiv.className += "animate__animated animate__zoomInLeft";
     const bulletElement = document.createElement("ul");
@@ -164,7 +168,6 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function editModalSave(collection) {
-    console.log(collection);
     const editLinksTextArea = document.getElementById("editLinks");
     collection.links.forEach((link) => {
       editLinksTextArea.value += `${link}\n\n`;
@@ -173,7 +176,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document
       .getElementById("saveEditedCollection")
       .addEventListener("click", () => {
-        console.log("clicked");
         collection.links = document
           .getElementById("editLinks")
           .value.split("\n")
@@ -189,6 +191,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
             return item;
           });
+
+          retrievedCollections = removeDuplicateLinks(retrievedCollections, collection.name);
 
           // Save the updated collection back to storage
           browser.storage.local.set({ collections: retrievedCollections });
@@ -209,6 +213,24 @@ document.addEventListener("DOMContentLoaded", function () {
         displayCollections();
       });
     });
+  }
+
+  function removeDuplicateLinks(collectionArray, collectionName) {
+    // Find the collection by name
+    const collection = collectionArray.find(c => c.name === collectionName);
+
+    if (!collection) {
+      console.error('Collection not found');
+      return collectionArray; // Return the original array if collection not found
+    }
+
+    // Remove duplicates from the links array
+    const uniqueLinks = [...new Set(collection.links)];
+
+    // Update the collection's links with the unique links
+    collection.links = uniqueLinks;
+
+    return collectionArray; // Return the modified array
   }
 
   // Initial display

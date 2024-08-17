@@ -9,12 +9,10 @@ document.getElementById("submitButton").addEventListener("click", function () {
         const importedCollections = JSON.parse(e.target.result);
 
         if (isValidStructure(importedCollections)) {
-          console.log("Imported collections:", importedCollections);
           browser.storage.local.get({ collections: [] }, function (result) {
             const collections = result.collections;
             collections.length = 0;
             collections.push(...importedCollections);
-            console.log(collections);
             browser.storage.local.set(
               { collections: collections },
               function () {
