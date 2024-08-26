@@ -30,7 +30,6 @@ browser.menus.onClicked.addListener((info, tab) => {
 
             // Copy the URLs to the clipboard using the Clipboard API
             navigator.clipboard.writeText(tabLinks).then(() => {
-                console.log("All tab links copied to clipboard!");
             }).catch(err => {
                 console.error("Failed to copy tab links to clipboard: ", err);
             });

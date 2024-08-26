@@ -1,10 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
+  // Detect if the platform is Android and apply specific styles
   browser.runtime.getPlatformInfo().then((info) => {
     if (info.os === 'android') {
       document.getElementById('dynamicStyles').href = 'mobile.css';
     }
   });
 
+  // Get references to various elements in the DOM
   const createCollectionIcon = document.getElementById("createCollection");
   const modal = document.getElementById("modal");
   const editModal = document.getElementById("editModal");
@@ -15,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const exportJSONButton = document.getElementById("exportJSON");
   const importJSONButton = document.getElementById("importJSON");
 
+  // Event listener for exporting collections to JSON
   exportJSONButton.addEventListener("click", () => {
     browser.storage.local.get({ collections: [] }, function (result) {
       const collections = result.collections;
@@ -22,22 +25,13 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // Event listener for importing collections from JSON
   importJSONButton.addEventListener("click", function () {
-    // Open import.html in a new tab
     browser.tabs.create({ url: browser.runtime.getURL("import.html") });
-    Toastify({
-      text: "Import Page Opened!",
-      duration: 3000,
-      close: true,
-      gravity: "top", // `top` or `bottom`
-      position: "right", // `left`, `center` or `right`
-      stopOnFocus: true, // Prevents dismissing of toast on hover
-      style: {
-        background: "linear-gradient(to right, #4caf50, #4caf50)",
-      },
-    }).showToast();
+    showToast("Import Page Opened!", "top", "right");
   });
 
+  // Export collections as a JSON file
   function exportCollections(collections) {
     const content = JSON.stringify(collections, null, 2);
     const filename = 'collections_export.json';
@@ -57,32 +51,24 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     document.body.appendChild(iframe);
-    // const url = URL.createObjectURL(blob); // Create a URL for the Blob
-    // const a = document.createElement("a");
-    // a.href = url;
-    // a.download = "collections.json"; // Set the file name for the download
-    // // Append the anchor to the body for Android support
-    // document.body.appendChild(a);
-    // a.click(); // Trigger the download
-    // document.body.removeChild(a);
-    // URL.revokeObjectURL(url); // Clean up
   }
 
-  // Show modal
+  // Show the modal for creating a new collection
   createCollectionIcon.addEventListener("click", () => {
     modal.style.display = "block";
   });
 
-  // Close modal
+  // Close the create collection modal
   closeModal.addEventListener("click", () => {
     modal.style.display = "none";
   });
 
+  // Close the edit collection modal
   closeEditModal.addEventListener("click", () => {
     editModal.style.display = "none";
   });
 
-  // Save collection
+  // Save a new collection to local storage
   saveCollectionButton.addEventListener("click", () => {
     const collectionName = document.getElementById("collectionName").value;
     const collectionLinks = document
@@ -99,11 +85,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-      // Save to storage
+      // Save the collection to local storage
       browser.storage.local.get({ collections: [] }, function (result) {
         let collections = result.collections;
         collections.push(collection);
         collections = removeDuplicateLinks(collections, collectionName);
+        document.getElementById("collectionName").value = "";
+        document.getElementById("collectionLinks").value = "";
         browser.storage.local.set({ collections }, function () {
           modal.style.display = "none";
           displayCollections();
@@ -112,68 +100,58 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Display collections
+  // Display all collections in the UI
   function displayCollections() {
-    console.log("asd");
     collectionsDiv.innerHTML = "";
     browser.storage.local.get({ collections: [] }, function (result) {
       const collections = result.collections;
-      collections.forEach((collection, index) => {
+      collections.forEach((collection) => {
         const collectionDiv = document.createElement("div");
-        collectionDiv.className =
-          "d-flex col-6 mb-3 justify-content-center col-Button";
+        collectionDiv.className = "d-flex col-6 mb-3 justify-content-center col-Button";
+
         const collectionButton = document.createElement("button");
         collectionButton.type = "button";
         collectionButton.className = "btn btn-secondary col-12";
         collectionButton.innerHTML = `<strong>${collection.name}</strong>`;
+
         collectionDiv.appendChild(collectionButton);
         collectionDiv.addEventListener("click", () => {
           displayLinks(collection);
         });
+
         collectionsDiv.appendChild(collectionDiv);
       });
     });
   }
 
-  // Display links
+  // Display the links in a specific collection
   function displayLinks(collection) {
-    // currentCollection = collection;
-    console.log(collection.links);
     collectionsDiv.innerHTML = `<h3>${collection.name}</h3>`;
     collectionsDiv.className += "animate__animated animate__zoomInLeft";
+
     const bulletElement = document.createElement("ul");
     bulletElement.className = "list-group";
     collectionsDiv.appendChild(bulletElement);
+
     collection.links.forEach((link) => {
       const bullet = document.createElement("li");
-      bullet.className =
-        "list-group-item list-group-item-success d-flex justify-content-between align-items-center linkList mb-2";
+      bullet.className = "list-group-item list-group-item-success d-flex justify-content-between align-items-center linkList mb-2";
 
       const linkTag = document.createElement("a");
-      linkTag.className =
-        "link-underline link-underline-opacity-0 link-underline-opacity-75-hover text-success-emphasis";
+      linkTag.className = "link-underline link-underline-opacity-0 link-underline-opacity-75-hover text-success-emphasis";
       linkTag.href = link;
       linkTag.textContent = link;
       linkTag.target = "_blank";
 
+      // Check if the platform is Android
       const isFirefoxAndroid = navigator.userAgent.includes("Android");
+
+      // Open the link in a new tab and show a toast message if on Android
       linkTag.addEventListener("click", (event) => {
         event.preventDefault();
-        browser.tabs.create({
-          url: link,
-        });
+        browser.tabs.create({ url: link });
         if (isFirefoxAndroid) {
-          Toastify({
-            text: "Link Opened!",
-            duration: 2000,
-            close: true,
-            gravity: "top", // `top` or `bottom`
-            position: "left", // `left`, `center` or `right`
-            stopOnFocus: true, // Prevents dismissing of toast on hover
-            style: {
-              background: "linear-gradient(to right, #4caf50, #4caf50)",
-            },
-          }).showToast();
+          showToast("Link Opened!", "top", "left");
         }
       });
 
@@ -181,10 +159,11 @@ document.addEventListener("DOMContentLoaded", function () {
       bulletElement.appendChild(bullet);
     });
 
+    // Add buttons for deleting, editing, and going back
     const buttonsDiv = document.createElement("div");
-
     buttonsDiv.className = "d-flex justify-content-between";
 
+    // Delete button
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.className = "btn btn-danger";
@@ -194,6 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     buttonsDiv.appendChild(removeButton);
 
+    // Edit button
     const editButton = document.createElement("button");
     editButton.type = "button";
     editButton.className = "btn btn-warning";
@@ -204,6 +184,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     buttonsDiv.appendChild(editButton);
 
+    // Back button
     const backButton = document.createElement("button");
     backButton.type = "button";
     backButton.className = "btn btn-info";
@@ -214,47 +195,45 @@ document.addEventListener("DOMContentLoaded", function () {
     collectionsDiv.appendChild(buttonsDiv);
   }
 
+  // Save edited links in a collection
   function editModalSave(collection) {
     const editLinksTextArea = document.getElementById("editLinks");
     collection.links.forEach((link) => {
       editLinksTextArea.value += `${link}\n\n`;
     });
 
-    document
-      .getElementById("saveEditedCollection")
-      .addEventListener("click", () => {
-        collection.links = document
-          .getElementById("editLinks")
-          .value.split("\n")
-          .map((link) => link.trim())
-          .filter((link) => link);
+    document.getElementById("saveEditedCollection").addEventListener("click", () => {
+      collection.links = document
+        .getElementById("editLinks")
+        .value.split("\n")
+        .map((link) => link.trim())
+        .filter((link) => link);
 
-        browser.storage.local.get({ collections: [] }, function (result) {
-          let retrievedCollections = result.collections || [];
+      browser.storage.local.get({ collections: [] }, function (result) {
+        let retrievedCollections = result.collections || [];
 
-          retrievedCollections = retrievedCollections.map((item) => {
-            if (item.name === collection.name) {
-              return { ...item, links: collection.links }; // Modify the links as needed
-            }
-            return item;
-          });
-
-          retrievedCollections = removeDuplicateLinks(retrievedCollections, collection.name);
-
-          // Save the updated collection back to storage
-          browser.storage.local.set({ collections: retrievedCollections });
-          editModal.style.display = "none";
-          displayLinks(collection);
+        retrievedCollections = retrievedCollections.map((item) => {
+          if (item.name === collection.name) {
+            return { ...item, links: collection.links };
+          }
+          return item;
         });
+
+        retrievedCollections = removeDuplicateLinks(retrievedCollections, collection.name);
+
+        // Save the updated collection back to storage
+        browser.storage.local.set({ collections: retrievedCollections });
+        editModal.style.display = "none";
+        displayLinks(collection);
       });
+    });
   }
 
+  // Remove a collection from local storage
   function removeCollection(collectionName) {
     browser.storage.local.get({ collections: [] }, function (result) {
       const collections = result.collections;
-      const index = collections.findIndex(
-        (collection) => collection.name === collectionName
-      );
+      const index = collections.findIndex((collection) => collection.name === collectionName);
       collections.splice(index, 1);
       browser.storage.local.set({ collections }, function () {
         displayCollections();
@@ -262,24 +241,33 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
+  // Remove duplicate links within a collection
   function removeDuplicateLinks(collectionArray, collectionName) {
-    // Find the collection by name
     const collection = collectionArray.find(c => c.name === collectionName);
-
     if (!collection) {
       console.error('Collection not found');
-      return collectionArray; // Return the original array if collection not found
+      return collectionArray;
     }
 
-    // Remove duplicates from the links array
-    const uniqueLinks = [...new Set(collection.links)];
-
-    // Update the collection's links with the unique links
-    collection.links = uniqueLinks;
-
-    return collectionArray; // Return the modified array
+    collection.links = [...new Set(collection.links)];
+    return collectionArray;
   }
 
-  // Initial display
+  // Show a toast message with customizable options
+  function showToast(message, gravity, position) {
+    Toastify({
+      text: message,
+      duration: 2000,
+      close: true,
+      gravity: gravity, // `top` or `bottom`
+      position: position, // `left`, `center` or `right`
+      stopOnFocus: true,
+      style: {
+        background: "linear-gradient(to right, #4caf50, #4caf50)",
+      },
+    }).showToast();
+  }
+
+  // Initial display of collections on page load
   displayCollections();
 });
