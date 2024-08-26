@@ -4,10 +4,10 @@
     "version": "1.0",
     "description": "Manage and access your link and tab collections.",
     "browser_action": {
-        "default_popup": "popup.html",
         "default_icon": {
             "48": "icons/icon-48.png"
-        }
+        },
+        "browser_style": true
     },
     "browser_specific_settings": {
         "gecko": {
@@ -23,7 +23,7 @@
     },
     "background": {
         "scripts": [
-            "background.js"
+            "/js/background.js"
         ],
         "persistent": false
     },
@@ -36,6 +36,7 @@
         "storage",
         "tabs",
         "activeTab",
-        "menus"
+        "menus",
+        "<all_urls>"
     ]
 }

@@ -1,0 +1,19 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.container {
+  width: 100%;
+  max-width: 280px;
+  height: 362px;
+  /* Ensures a minimum height */
+  padding-top: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  overflow: auto;
+  /* Allows scrolling if content overflows */
+}

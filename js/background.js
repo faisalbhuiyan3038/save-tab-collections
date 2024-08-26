@@ -1,3 +1,13 @@
+browser.runtime.getPlatformInfo().then((info) => {
+    if (info.os === 'android') {
+        browser.browserAction.onClicked.addListener(() => {
+            browser.tabs.create({ url: browser.runtime.getURL("popup.html") });
+        });
+    } else {
+        browser.browserAction.setPopup({ popup: "popup.html" });
+    }
+});
+
 // Create a context menu item
 browser.menus.create({
     id: "tab-collection-copy-links",

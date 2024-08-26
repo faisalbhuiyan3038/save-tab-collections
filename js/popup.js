@@ -1,4 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
+  browser.runtime.getPlatformInfo().then((info) => {
+    if (info.os === 'android') {
+      document.getElementById('dynamicStyles').href = 'mobile.css';
+    }
+  });
+
   const createCollectionIcon = document.getElementById("createCollection");
   const modal = document.getElementById("modal");
   const editModal = document.getElementById("editModal");
@@ -33,10 +39,24 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function exportCollections(collections) {
-    const dataStr = JSON.stringify(collections, null, 2); // Convert collections array to JSON string
-    const blob = new Blob([dataStr], { type: "application/json" }); // Create a Blob from the JSON string
-    var FileSaver = require('file-saver');
-    FileSaver.saveAs(blob, "collections.json");
+    const content = JSON.stringify(collections, null, 2);
+    const filename = 'collections_export.json';
+    const filetype = 'application/json';
+
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.left = iframe.style.top = '-99px';
+    iframe.srcdoc = `<a download="${filename}" target="_blank">${filename}</a>`;
+
+    iframe.onload = function () {
+      const blob = new Blob([content], { type: filetype });
+      const a = iframe.contentDocument.querySelector('a');
+      a.href = iframe.contentWindow.URL.createObjectURL(blob);
+      a.click();
+      setTimeout(() => iframe.remove(), 2000);
+    };
+
+    document.body.appendChild(iframe);
     // const url = URL.createObjectURL(blob); // Create a URL for the Blob
     // const a = document.createElement("a");
     // a.href = url;
@@ -94,6 +114,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Display collections
   function displayCollections() {
+    console.log("asd");
     collectionsDiv.innerHTML = "";
     browser.storage.local.get({ collections: [] }, function (result) {
       const collections = result.collections;
