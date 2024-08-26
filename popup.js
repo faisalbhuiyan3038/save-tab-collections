@@ -19,17 +19,33 @@ document.addEventListener("DOMContentLoaded", function () {
   importJSONButton.addEventListener("click", function () {
     // Open import.html in a new tab
     browser.tabs.create({ url: browser.runtime.getURL("import.html") });
+    Toastify({
+      text: "Import Page Opened!",
+      duration: 3000,
+      close: true,
+      gravity: "top", // `top` or `bottom`
+      position: "right", // `left`, `center` or `right`
+      stopOnFocus: true, // Prevents dismissing of toast on hover
+      style: {
+        background: "linear-gradient(to right, #4caf50, #4caf50)",
+      },
+    }).showToast();
   });
 
   function exportCollections(collections) {
     const dataStr = JSON.stringify(collections, null, 2); // Convert collections array to JSON string
     const blob = new Blob([dataStr], { type: "application/json" }); // Create a Blob from the JSON string
-    const url = URL.createObjectURL(blob); // Create a URL for the Blob
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "collections.json"; // Set the file name for the download
-    a.click(); // Trigger the download
-    URL.revokeObjectURL(url); // Clean up
+    var FileSaver = require('file-saver');
+    FileSaver.saveAs(blob, "collections.json");
+    // const url = URL.createObjectURL(blob); // Create a URL for the Blob
+    // const a = document.createElement("a");
+    // a.href = url;
+    // a.download = "collections.json"; // Set the file name for the download
+    // // Append the anchor to the body for Android support
+    // document.body.appendChild(a);
+    // a.click(); // Trigger the download
+    // document.body.removeChild(a);
+    // URL.revokeObjectURL(url); // Clean up
   }
 
   // Show modal
@@ -126,7 +142,17 @@ document.addEventListener("DOMContentLoaded", function () {
           url: link,
         });
         if (isFirefoxAndroid) {
-          window.alert("Tab created!");
+          Toastify({
+            text: "Link Opened!",
+            duration: 2000,
+            close: true,
+            gravity: "top", // `top` or `bottom`
+            position: "left", // `left`, `center` or `right`
+            stopOnFocus: true, // Prevents dismissing of toast on hover
+            style: {
+              background: "linear-gradient(to right, #4caf50, #4caf50)",
+            },
+          }).showToast();
         }
       });
 
