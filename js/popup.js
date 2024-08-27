@@ -112,7 +112,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const collectionButton = document.createElement("button");
         collectionButton.type = "button";
         collectionButton.className = "btn btn-secondary col-12";
-        collectionButton.innerHTML = `<strong>${collection.name}</strong>`;
+        const strongElement = document.createElement("strong");
+        strongElement.textContent = collection.name;
+        collectionButton.appendChild(strongElement);
 
         collectionDiv.appendChild(collectionButton);
         collectionDiv.addEventListener("click", () => {
@@ -126,8 +128,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Display the links in a specific collection
   function displayLinks(collection) {
-    collectionsDiv.innerHTML = `<h3>${collection.name}</h3>`;
-    collectionsDiv.className += "animate__animated animate__zoomInLeft";
+    const heading = document.createElement('h3');
+    heading.textContent = collection.name;
+    collectionsDiv.innerHTML = ''
+    collectionsDiv.appendChild(heading);
+    collectionsDiv.classList.add("animate__animated", "animate__zoomInLeft");
 
     const bulletElement = document.createElement("ul");
     bulletElement.className = "list-group";
