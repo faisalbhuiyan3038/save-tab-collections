@@ -275,4 +275,5 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initial display of collections on page load
   displayCollections();
+
 });

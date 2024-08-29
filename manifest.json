@@ -33,6 +33,7 @@
         "48": "icons/icon-48.png"
     },
     "permissions": [
+        "identity",
         "storage",
         "tabs",
         "activeTab",
