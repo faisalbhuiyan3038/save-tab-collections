@@ -92,3 +92,83 @@ function isValidStructure(collections) {
     Array.isArray(firstCollection.links)
   );
 }
+
+document.getElementById('exportDrive').addEventListener('click', () => {
+  const fileName = 'collections.json';
+  async function getCollections() {
+    let result = await browser.storage.local.get({ collections: [] });
+    return result.collections;
+  }
+
+  (async () => {
+    let retrievedCollections = await getCollections();
+
+    const fileContent = JSON.stringify(retrievedCollections);
+
+    browser.runtime.sendMessage({
+      action: 'exportDrive',
+      fileContent,
+      fileName
+    }).then(response => {
+      if (response.success) {
+        Toastify({
+          text: "Success! Collections Imported",
+          duration: 3000,
+          close: true,
+          gravity: "top", // `top` or `bottom`
+          position: "right", // `left`, `center` or `right`
+          stopOnFocus: true, // Prevents dismissing of toast on hover
+          style: {
+            background: "linear-gradient(to right, #4caf50, #4caf50)",
+          },
+        }).showToast();
+      } else {
+        alert('Backup failed: ' + response.error);
+      }
+    });
+  })();
+
+});
+
+document.getElementById('importDrive').addEventListener('click', () => {
+  const fileName = 'collections.json';
+
+  browser.runtime.sendMessage({
+    action: 'importDrive',
+    fileName
+  }).then(response => {
+    if (response.success) {
+      // Store the restored data in local storage
+      browser.storage.local.set({ collections: response.fileContent })
+        .then(() => {
+          Toastify({
+            text: "Success! Collections Imported",
+            duration: 3000,
+            close: true,
+            gravity: "top", // `top` or `bottom`
+            position: "right", // `left`, `center` or `right`
+            stopOnFocus: true, // Prevents dismissing of toast on hover
+            style: {
+              background: "linear-gradient(to right, #4caf50, #4caf50)",
+            },
+          }).showToast();
+        })
+        .catch(error => {
+          alert('Failed to save restored data: ' + error.message);
+          console.error('Error saving data to local storage:', error);
+        });
+    } else {
+      Toastify({
+        text: "Error: Restore failed.",
+        duration: 3000,
+        close: true,
+        gravity: "top", // `top` or `bottom`
+        position: "right", // `left`, `center` or `right`
+        stopOnFocus: true, // Prevents dismissing of toast on hover
+        style: {
+          background: "linear-gradient(to right, #f44336, #f44336)",
+        },
+      }).showToast();
+    }
+  });
+});

@@ -277,23 +277,15 @@ document.addEventListener("DOMContentLoaded", function () {
   displayCollections();
 
   document.getElementById('exportDrive').addEventListener('click', () => {
-    const fileName = 'collections.json';
-    const fileContent = JSON.stringify([
-      { name: 'Example', links: ['https://example.com'] }
-      // Add your actual collection data here
-    ]);
-
-    browser.runtime.sendMessage({
-      action: 'exportDrive',
-      fileContent,
-      fileName
-    }).then(response => {
-      if (response.success) {
-        alert('Backup successful!');
-      } else {
-        alert('Backup failed: ' + response.error);
-      }
-    });
+    browser.tabs.create({ url: browser.runtime.getURL("import.html") });
+    showToast("Export Page Opened!", "top", "right");
   });
+
+  document.getElementById('importDrive').addEventListener('click', () => {
+    browser.tabs.create({ url: browser.runtime.getURL("import.html") });
+    showToast("Import Page Opened!", "top", "right");
+  });
+
+
 
 });

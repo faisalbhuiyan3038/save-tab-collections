@@ -119,25 +119,51 @@ async function getFolderId() {
     }
 }
 
+async function getFileId(folderId, fileName) {
+    const query = `name='${fileName}' and '${folderId}' in parents and trashed=false`;
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`, {
+        headers: new Headers({
+            'Authorization': 'Bearer ' + accessToken
+        })
+    });
+
+    const files = await response.json();
+    return files.files.length > 0 ? files.files[0].id : null;
+}
+
 async function uploadToDrive(fileContent, fileName) {
     if (!isTokenValid()) {
         await authorize();
     }
 
     const folderId = await getFolderId();
+    const fileId = await getFileId(folderId, fileName);
 
-    const metadata = {
+    let metadata = {
         name: fileName,
-        mimeType: 'application/json',
-        parents: [folderId]  // This ensures the file is saved inside the folder
+        mimeType: 'application/json'
     };
 
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', new Blob([fileContent], { type: 'application/json' }));
 
-    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
+    let url = 'https://www.googleapis.com/upload/drive/v3/files';
+    let method = 'POST';
+
+    if (fileId) {
+        // If the file exists, update it without changing its location
+        url += `/${fileId}?uploadType=multipart`;
+        method = 'PATCH';
+    } else {
+        // Otherwise, create a new file and specify the parent folder
+        metadata.parents = [folderId];
+        form.set('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+        url += '?uploadType=multipart';
+    }
+
+    const response = await fetch(url, {
+        method: method,
         headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
         body: form
     });
@@ -155,6 +181,51 @@ browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
             .catch(error => {
                 console.error('Error uploading file:', error);
                 sendResponse({ success: false, error });
+            });
+        return true; // Keep the message channel open for async response
+    }
+});
+
+async function downloadFromDrive(fileId) {
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+        headers: new Headers({
+            'Authorization': 'Bearer ' + accessToken
+        })
+    });
+
+    if (response.ok) {
+        return await response.json();
+    } else {
+        throw new Error('Failed to download file from Google Drive');
+    }
+}
+
+async function restoreFromDrive(fileName) {
+    if (!isTokenValid()) {
+        await authorize();
+    }
+
+    const folderId = await getFolderId();
+    const fileId = await getFileId(folderId, fileName);
+
+    if (fileId) {
+        const fileContent = await downloadFromDrive(fileId);
+        return fileContent; // Return the JSON data to be used in the add-on
+    } else {
+        throw new Error('No backup file found');
+    }
+}
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'importDrive') {
+        restoreFromDrive(message.fileName)
+            .then(fileContent => {
+                console.log('File restored:', fileContent);
+                sendResponse({ success: true, fileContent });
+            })
+            .catch(error => {
+                console.error('Error restoring file:', error);
+                sendResponse({ success: false, error: error.message });
             });
         return true; // Keep the message channel open for async response
     }
