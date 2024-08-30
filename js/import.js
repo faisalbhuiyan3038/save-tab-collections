@@ -94,6 +94,7 @@ function isValidStructure(collections) {
 }
 
 document.getElementById('exportDrive').addEventListener('click', () => {
+  console.log('i am clicked');
   const fileName = 'collections.json';
   async function getCollections() {
     let result = await browser.storage.local.get({ collections: [] });
