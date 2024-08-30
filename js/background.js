@@ -50,183 +50,113 @@ browser.menus.onClicked.addListener((info, tab) => {
     }
 });
 
-async function authenticate() {
-    const clientId = '1091885613829-sgj5utgcfmfq6553ve3ca95nmtkfvdui.apps.googleusercontent.com';
-    const redirectUri = browser.identity.getRedirectURL();
-    const scopes = 'https://www.googleapis.com/auth/drive.file';
-    const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&response_type=token&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes)}`;
+const CLIENT_ID = '1091885613829-sgj5utgcfmfq6553ve3ca95nmtkfvdui.apps.googleusercontent.com';
+const REDIRECT_URI = browser.identity.getRedirectURL();
+const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+let accessToken = null;
+let tokenExpiry = null;
+const FOLDER_NAME = 'Link Collection Manager';
 
-    try {
-        const redirectUrl = await browser.identity.launchWebAuthFlow({
-            interactive: true,
-            url: authUrl
-        });
+function createAuthUrl() {
+    const params = new URLSearchParams();
+    params.append('client_id', CLIENT_ID);
+    params.append('redirect_uri', REDIRECT_URI);
+    params.append('response_type', 'token');
+    params.append('scope', SCOPES);
 
-        const params = new URL(redirectUrl).hash.substring(1);
-        const tokenInfo = new URLSearchParams(params);
-        const accessToken = tokenInfo.get('access_token');
-        const expiryTime = Date.now() + parseInt(tokenInfo.get('expires_in')) * 1000;
-
-        // Store token and expiry time
-        await browser.storage.local.set({ accessToken, expiryTime });
-        return accessToken;
-    } catch (error) {
-        console.error('Authentication failed:', error);
-        throw new Error('Authentication failed');
-    }
+    return `https://accounts.google.com/o/oauth2/auth?${params.toString()}`;
 }
 
-async function getAccessToken() {
-    const result = await browser.storage.local.get(['accessToken', 'expiryTime']);
-    const { accessToken, expiryTime } = result;
+async function authorize() {
+    const authUrl = createAuthUrl();
 
-    if (accessToken && expiryTime > Date.now()) {
-        // Token is valid
-        return accessToken;
-    } else {
-        // Token is invalid or expired, re-authenticate
-        return authenticate();
-    }
-}
-
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'getAccessToken') {
-        console.log('Received message to get access token');
-
-        getAccessToken()
-            .then((token) => {
-                console.log('Sending Access Token:', token);
-                sendResponse({ token }); // Send the token as an object
-            })
-            .catch((error) => {
-                console.error('Error getting access token:', error);
-                sendResponse({ token: null }); // Send null if there's an error
-            });
-
-        return true; // Keeps the message channel open for sendResponse
-    }
-});
-
-
-
-
-
-async function uploadFileToDrive(accessToken, fileContent) {
-    const metadata = {
-        name: 'collections.json',
-        mimeType: 'application/json'
-    };
-
-    console.log(accessToken);
-
-    const formData = new FormData();
-    formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    formData.append('file', new Blob([fileContent], { type: 'application/json' }));
-
-    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'multipart/form-data'
-        },
-        body: formData
+    const redirectUrl = await browser.identity.launchWebAuthFlow({
+        interactive: true,
+        url: authUrl
     });
 
-    if (!response.ok) {
-        throw new Error('Failed to upload file to Google Drive');
-    }
+    const url = new URL(redirectUrl);
+    const params = new URLSearchParams(url.hash.substring(1)); // Get params from hash
 
-    const data = await response.json();
-    return data;
+    accessToken = params.get('access_token');
+    tokenExpiry = Date.now() + parseInt(params.get('expires_in'), 10) * 1000;
+
+    return accessToken;
 }
 
-browser.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-    if (message.action === 'uploadFileToDrive') {
-        try {
-            const result = await uploadFileToDrive(message.accessToken, message.fileContent);
-            sendResponse({ success: true, result });
-        } catch (error) {
-            console.error('Error uploading file:', error);
-            sendResponse({ success: false, error: error.message });
-        }
-        return true; // Keep the message channel open for async response
-    }
-});
-
-async function downloadFileFromDrive(accessToken, fileId) {
-    const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`
-        }
-    });
-
-    const fileContent = await response.json();
-    return fileContent;
+function isTokenValid() {
+    return accessToken && tokenExpiry && Date.now() < tokenExpiry;
 }
 
-async function listFilesInAppDataFolder(accessToken) {
-    const response = await fetch('https://www.googleapis.com/drive/v3/files?q=\'appDataFolder\' in parents', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${accessToken}`
-        }
+async function getFolderId() {
+    const query = `name='${FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+    const response = await fetch(`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`, {
+        headers: new Headers({
+            'Authorization': 'Bearer ' + accessToken
+        })
     });
 
     const files = await response.json();
-    return files.files;
-}
+    if (files.files.length > 0) {
+        return files.files[0].id;
+    } else {
+        const folderMetadata = {
+            name: FOLDER_NAME,
+            mimeType: 'application/vnd.google-apps.folder'
+        };
 
-document.getElementById('exportDrive').addEventListener('click', async () => {
-    try {
-        console.log('Requesting access token');
-        const accessToken = await getAccessToken();
-
-        if (!accessToken) {
-            console.log('No access token available');
-            return;
-        }
-
-        console.log('Access Token Received:', accessToken);
-
-        if (!response || !response.token) {
-            console.log('noaccesstoken');
-            return;
-        }
-
-        browser.storage.local.get({ collections: [] }, async function (result) {
-            let retrievedCollections = result.collections || [];
-            const fileContent = JSON.stringify({ retrievedCollections });
-            const response = await browser.runtime.sendMessage({
-                action: 'uploadFileToDrive',
-                accessToken,
-                fileContent
-            });
-
-            if (response.success) {
-                console.log('File uploaded successfully:', response.result);
-            } else {
-                console.error('Failed to upload file:', response.error);
-            }
+        const folderResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+            method: 'POST',
+            headers: new Headers({
+                'Authorization': 'Bearer ' + accessToken,
+                'Content-Type': 'application/json'
+            }),
+            body: JSON.stringify(folderMetadata)
         });
 
-    } catch (error) {
-        console.error('Error during backup:', error);
+        const folderData = await folderResponse.json();
+        return folderData.id;
     }
-});
+}
 
+async function uploadToDrive(fileContent, fileName) {
+    if (!isTokenValid()) {
+        await authorize();
+    }
 
-document.getElementById('importDrive').addEventListener('click', async () => {
-    await browser.runtime.getBackgroundPage().then(async (bg) => {
-        const accessToken = await bg.authenticate();
-        const files = await bg.listFilesInAppDataFolder(accessToken);
-        if (files.length > 0) {
-            const fileId = files[0].id;
-            const content = await bg.downloadFileFromDrive(accessToken, fileId);
-            console.log('Restored content:', content);
-        } else {
-            console.log('No backup found.');
-        }
+    const folderId = await getFolderId();
+
+    const metadata = {
+        name: fileName,
+        mimeType: 'application/json',
+        parents: [folderId]  // This ensures the file is saved inside the folder
+    };
+
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', new Blob([fileContent], { type: 'application/json' }));
+
+    const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST',
+        headers: new Headers({ 'Authorization': 'Bearer ' + accessToken }),
+        body: form
     });
+
+    return await response.json();
+}
+
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'exportDrive') {
+        uploadToDrive(message.fileContent, message.fileName)
+            .then(response => {
+                console.log('File uploaded:', response);
+                sendResponse({ success: true, response });
+            })
+            .catch(error => {
+                console.error('Error uploading file:', error);
+                sendResponse({ success: false, error });
+            });
+        return true; // Keep the message channel open for async response
+    }
 });
 
